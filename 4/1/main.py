@@ -7,6 +7,9 @@ import sys
 EXTENSION = ".lst"
 
 
+class EmptyFileNameException(Exception): pass
+
+
 def get_string(input_prompt, *, permissible=None, mandatory=False):
     """
     A function for getting a string from a user
@@ -70,7 +73,10 @@ def handle_file_list(files):
                         mandatory=True)
 
     if answer in set("nN"):
-        handle_new_file(files)
+        try:
+            handle_new_file(files)
+        except EmptyFileNameException:
+            return
     elif answer in set("lL"):
         handle_existing_file(files)
     elif answer in set("qQ"):
@@ -83,7 +89,10 @@ def get_file_name(existing_files=None):
     """
 
     while True:
-        file_name = get_string("enter a file name: ", mandatory=True)
+        file_name = get_string("enter a file name: ", mandatory=False)
+
+        if not file_name:
+            raise EmptyFileNameException
 
         if not file_name.isalnum():
             print("a wrong file name")
@@ -261,7 +270,11 @@ The main function looping over a user's iteractions.
                  file.endswith(EXTENSION)]
 
         if not files:
-            handle_new_file()
+            try:
+                handle_new_file()
+            except EmptyFileNameException:
+                print()
+                sys.exit()
             print()
             continue
 
